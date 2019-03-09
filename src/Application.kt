@@ -1,18 +1,18 @@
 package mjs.kotlin
 
-import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
-import io.ktor.http.ContentType
 import io.ktor.jackson.jackson
 import io.ktor.request.path
+import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.response.respondText
 import io.ktor.routing.get
+import io.ktor.routing.post
 import io.ktor.routing.routing
+import mjs.kotlin.sms.MOMessage
 import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -26,18 +26,17 @@ fun Application.module(testing: Boolean = false) {
     }
 
     install(ContentNegotiation) {
-        jackson {
-            enable(SerializationFeature.INDENT_OUTPUT)
-        }
+        jackson {}
     }
 
     routing {
         get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+            call.respond(mapOf("status" to "UP"))
         }
 
-        get("/json/jackson") {
-            call.respond(mapOf("hello" to "world", "this" to mapOf("black" to "white")))
+        post("/api/v1/premium-sms") {
+            val message = call.receive<MOMessage>()
+            call.respond(message)
         }
     }
 }
