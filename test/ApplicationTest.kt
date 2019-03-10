@@ -1,20 +1,24 @@
 package mjs.kotlin
 
+import assertk.assertThat
+import assertk.assertions.isEqualTo
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ApplicationTest {
+
     @Test
     fun `a root request should return a health check`() {
         withTestApplication({ module(testing = true) }) {
             handleRequest(HttpMethod.Get, "/").apply {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals("""{"status":"UP"}""", response.content)
+                assertThat(HttpStatusCode.OK).isEqualTo(response.status())
+                assertThat("""{"status":"UP"}""").isEqualTo(response.content)
             }
         }
     }
@@ -27,8 +31,8 @@ class ApplicationTest {
                 addHeader("Content-Type", "application/json")
                 setBody(moMessage)
             }) {
-                assertEquals(HttpStatusCode.OK, response.status())
-                assertEquals(moMessage, response.content)
+                assertThat(HttpStatusCode.OK).isEqualTo(response.status())
+                assertThat(moMessage).isEqualTo(response.content)
             }
         }
     }

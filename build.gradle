@@ -35,5 +35,9 @@ dependencies {
     compile "io.ktor:ktor-metrics:$ktor_version"
     compile "io.ktor:ktor-server-core:$ktor_version"
     compile "io.ktor:ktor-jackson:$ktor_version"
+
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.4.0"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.0"
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
+    testCompile "com.willowtreeapps.assertk:assertk-jvm:0.13"
 }
