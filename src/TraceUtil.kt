@@ -14,6 +14,6 @@ object TraceUtil {
     }
 
     fun hexId(id: Long): String {
-        return String.format("%08x", id)
+        return String.format("%016x", id)
     }
 }

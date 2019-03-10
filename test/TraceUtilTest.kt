@@ -1,8 +1,10 @@
 package mjs.kotlin
 
 import assertk.assertThat
-import assertk.assertions.isEqualTo
+import assertk.assertions.hasLength
 import assertk.assertions.isNotZero
+import mjs.kotlin.TraceUtil.hexId
+import mjs.kotlin.TraceUtil.nextId
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -15,7 +17,7 @@ internal class TraceUtilTest {
         @Test
         fun `should never be zero`() {
             repeat(1_000_000) {
-                assertThat(TraceUtil.nextId()).isNotZero()
+                assertThat(nextId()).isNotZero()
             }
         }
     }
@@ -23,8 +25,10 @@ internal class TraceUtilTest {
     @Nested
     inner class HexId {
         @Test
-        fun `should convert one-byte value`() {
-            assertThat(TraceUtil.hexId(139L)).isEqualTo("0000008b")
+        fun `should all be 16 characters long`() {
+            repeat(1_000) {
+                assertThat(hexId(nextId())).hasLength(16)
+            }
         }
     }
 }
