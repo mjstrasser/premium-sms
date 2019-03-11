@@ -1,4 +1,4 @@
-package mjs.kotlin
+package mjs.kotlin.tracing
 
 import kotlin.random.Random
 

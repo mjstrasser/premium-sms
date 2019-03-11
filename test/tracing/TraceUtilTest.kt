@@ -1,10 +1,10 @@
-package mjs.kotlin
+package mjs.kotlin.tracing
 
 import assertk.assertThat
 import assertk.assertions.hasLength
 import assertk.assertions.isNotZero
-import mjs.kotlin.TraceUtil.nextId
-import mjs.kotlin.TraceUtil.nextLong
+import mjs.kotlin.tracing.TraceUtil.nextId
+import mjs.kotlin.tracing.TraceUtil.nextLong
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance

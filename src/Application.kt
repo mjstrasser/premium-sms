@@ -5,16 +5,16 @@ import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
+import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
 import io.ktor.request.path
 import io.ktor.request.receive
-import io.ktor.response.header
 import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
-import mjs.kotlin.TraceUtil.nextId
 import mjs.kotlin.sms.MOMessage
+import mjs.kotlin.sms.processMoMessage
 import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -38,12 +38,13 @@ fun Application.module(testing: Boolean = false) {
         }
 
         post("/api/v1/premium-sms") {
-            val message = call.receive<MOMessage>()
-            nextId().also { id ->
-                call.response.header("X-B3-TraceId", id)
-                call.response.header("X-B3-SpanId", id)
+            try {
+                val moMessage = call.receive<MOMessage>()
+                val result = processMoMessage(moMessage)
+                call.respond(HttpStatusCode.Accepted, result)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, e.message ?: "There was an error processing your request")
             }
-            call.respond(message)
         }
     }
 }
