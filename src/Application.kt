@@ -6,6 +6,7 @@ import io.ktor.application.install
 import io.ktor.features.CallId
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
+import io.ktor.features.callIdMdc
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
 import io.ktor.request.path
@@ -32,6 +33,7 @@ fun Application.module(testing: Boolean = false) {
 
     install(CallLogging) {
         level = Level.INFO
+        callIdMdc()
         filter { call -> call.request.path().startsWith("/") }
     }
 
