@@ -3,6 +3,7 @@ package mjs.kotlin
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
+import io.ktor.features.CallId
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
 import io.ktor.http.HttpStatusCode
@@ -15,6 +16,7 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import mjs.kotlin.sms.MOMessage
 import mjs.kotlin.sms.processMoMessage
+import mjs.kotlin.tracing.TraceUtil.nextId
 import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -22,6 +24,11 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("UNUSED_PARAMETER")
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
+
+    install(CallId) {
+        generate { nextId() }
+        header("X-B3-TraceId")
+    }
 
     install(CallLogging) {
         level = Level.INFO
