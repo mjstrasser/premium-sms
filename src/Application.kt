@@ -18,6 +18,8 @@ import io.ktor.routing.routing
 import mjs.kotlin.sms.MOMessage
 import mjs.kotlin.sms.processMoMessage
 import mjs.kotlin.tracing.TraceUtil.nextId
+import mjs.kotlin.tracing.ZipkinIds
+import mjs.kotlin.tracing.zipkinMdc
 import org.slf4j.event.Level
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -26,14 +28,13 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
 
-    install(CallId) {
-        generate { nextId() }
-        header("X-B3-TraceId")
+    install(ZipkinIds) {
+//        newTrace(false)
     }
 
     install(CallLogging) {
         level = Level.INFO
-        callIdMdc()
+        zipkinMdc()
         filter { call -> call.request.path().startsWith("/") }
     }
 
