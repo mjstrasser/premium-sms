@@ -6,13 +6,24 @@ import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.features.CallLogging
 import io.ktor.http.Headers
+import io.ktor.response.ApplicationResponse
 import io.ktor.response.header
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelinePhase
 import kotlin.random.Random
 
+const val B3_HEADER = "b3"
 const val TRACE_ID_HEADER = "X-B3-TraceId"
 const val SPAN_ID_HEADER = "X-B3-SpanId"
+
+private val prng = Random(System.nanoTime())
+
+enum class IdLength { ID_64_BITS, ID_128_BITS }
+
+fun nextId(idLength: IdLength = IdLength.ID_64_BITS) = when (idLength) {
+    IdLength.ID_64_BITS -> String.format("%016x", prng.nextLong())
+    IdLength.ID_128_BITS -> String.format("%016x%016x", prng.nextLong(), prng.nextLong())
+}
 
 data class TraceAndSpan(val traceId: String, val spanId: String)
 
@@ -30,7 +41,9 @@ data class TraceAndSpan(val traceId: String, val spanId: String)
  */
 class ZipkinIds {
 
-    class Configuration
+    class Configuration {
+        var b3Header = false
+    }
 
     /**
      * Installable feature for [ZipkinIds].
@@ -46,34 +59,42 @@ class ZipkinIds {
 
         internal val traceAndSpanKey = AttributeKey<TraceAndSpan>("traceAndSpan")
 
+        private fun setHeaders(response: ApplicationResponse, traceAndSpan: TraceAndSpan, b3Header: Boolean) =
+            if (b3Header) {
+                response.header(B3_HEADER, "${traceAndSpan.traceId}-${traceAndSpan.spanId}")
+            } else {
+                response.header(TRACE_ID_HEADER, traceAndSpan.traceId)
+                response.header(SPAN_ID_HEADER, traceAndSpan.spanId)
+            }
+
+        private fun readHeaders(headers: Headers): TraceAndSpan {
+            val b3 = headers[B3_HEADER]
+            val traceId = headers[TRACE_ID_HEADER]
+            return b3?.let {
+                TraceAndSpan(b3.split("-")[0], nextId())
+            } ?: traceId?.let {
+                TraceAndSpan(traceId, nextId())
+            } ?: nextId().let { newId ->
+                TraceAndSpan(newId, newId)
+            }
+        }
+
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ZipkinIds {
+            val configuration = Configuration().apply(configure)
             val instance = ZipkinIds()
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
 
             pipeline.intercept(phase) {
                 val call = call
 
-                val traceAndSpan = calculateTraceAndSpan(call.request.headers)
+                val traceAndSpan = readHeaders(call.request.headers)
 
                 call.attributes.put(traceAndSpanKey, traceAndSpan)
 
-                call.response.header(TRACE_ID_HEADER, traceAndSpan.traceId)
-                call.response.header(SPAN_ID_HEADER, traceAndSpan.spanId)
+                setHeaders(call.response, traceAndSpan, configuration.b3Header)
             }
 
             return instance
-        }
-
-        private val prng = Random(System.nanoTime())
-        private fun nextId() = String.format("%016x", prng.nextLong())
-
-        private fun calculateTraceAndSpan(headers: Headers): TraceAndSpan {
-            val traceId = headers[TRACE_ID_HEADER]
-            return traceId?.let {
-                TraceAndSpan(traceId, nextId())
-            } ?: nextId().let { newId ->
-                TraceAndSpan(newId, newId)
-            }
         }
     }
 }

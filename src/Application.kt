@@ -3,10 +3,8 @@ package mjs.kotlin
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
-import io.ktor.features.CallId
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
-import io.ktor.features.callIdMdc
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
 import io.ktor.request.path
@@ -17,7 +15,6 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import mjs.kotlin.sms.MOMessage
 import mjs.kotlin.sms.processMoMessage
-import mjs.kotlin.tracing.TraceUtil.nextId
 import mjs.kotlin.tracing.ZipkinIds
 import mjs.kotlin.tracing.zipkinMdc
 import org.slf4j.event.Level
