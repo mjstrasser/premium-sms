@@ -15,6 +15,7 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import mjs.kotlin.sms.MOMessage
 import mjs.kotlin.sms.processMoMessage
+import mjs.kotlin.tracing.IdLength
 import mjs.kotlin.tracing.ZipkinIds
 import mjs.kotlin.tracing.zipkinMdc
 import org.slf4j.event.Level
@@ -25,7 +26,11 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
 
-    install(ZipkinIds)
+    install(ZipkinIds) {
+        b3Header = true
+        idLength = IdLength.ID_128_BITS
+        initiateTracePathPrefixes = arrayOf("/api")
+    }
 
     install(CallLogging) {
         level = Level.INFO

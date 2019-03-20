@@ -6,6 +6,7 @@ import io.ktor.application.install
 import io.ktor.http.HttpMethod
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
+import mjs.kotlin.tracing.ZipkinIds.Feature.foundPrefixMatch
 import mjs.kotlin.tracing.ZipkinIds.Feature.traceAndSpanKey
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -22,8 +23,42 @@ internal class ZipkinIdsTest {
         }
 
         @Test
-        fun `should generate a 128-bit ID if specified`() {
+        fun `should generate a 128-bit ID when specified`() {
             assertThat(nextId(IdLength.ID_128_BITS)).hasLength(32)
+        }
+    }
+
+
+    @Nested
+    inner class PathPrefixes {
+        @Test
+        fun `should return false if a path does not match any of the prefixes`() {
+            assertThat(foundPrefixMatch("/health", arrayOf("/api", "/login", "/logout"))).isFalse()
+        }
+
+        @Test
+        fun `should return true if a path matches one of the prefixes`() {
+            assertThat(foundPrefixMatch("/api/v1/premium-sms", arrayOf("/api/", "/login", "/logout"))).isTrue()
+        }
+
+        @Test
+        fun `should initiate a trace if the path starts with a specified prefix`(): Unit = withTestApplication {
+            application.install(ZipkinIds) {
+                initiateTracePathPrefixes = arrayOf("/api")
+            }
+            handleRequest(HttpMethod.Post, "/api/v1/premium-sms").apply {
+                assertThat(request.call.attributes.contains(traceAndSpanKey)).isTrue()
+            }
+        }
+
+        @Test
+        fun `should not initiate a trace if the path does not start a specified prefix`(): Unit = withTestApplication {
+            application.install(ZipkinIds) {
+                initiateTracePathPrefixes = arrayOf("/api")
+            }
+            handleRequest(HttpMethod.Get, "/health").apply {
+                assertThat(request.call.attributes.contains(traceAndSpanKey)).isFalse()
+            }
         }
     }
 

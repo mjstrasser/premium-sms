@@ -6,6 +6,7 @@ import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.features.CallLogging
 import io.ktor.http.Headers
+import io.ktor.request.path
 import io.ktor.response.ApplicationResponse
 import io.ktor.response.header
 import io.ktor.util.AttributeKey
@@ -43,6 +44,8 @@ class ZipkinIds {
 
     class Configuration {
         var b3Header = false
+        var initiateTracePathPrefixes = arrayOf("/")
+        var idLength = IdLength.ID_64_BITS
     }
 
     /**
@@ -59,6 +62,48 @@ class ZipkinIds {
 
         internal val traceAndSpanKey = AttributeKey<TraceAndSpan>("traceAndSpan")
 
+        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ZipkinIds {
+            val configuration = Configuration().apply(configure)
+            val instance = ZipkinIds()
+            pipeline.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
+
+            pipeline.intercept(phase) {
+                val call = call // Copied from ktor code: not sure why we do this
+                val traceAndSpan = readIdsFromRequest(call.request.headers) ?: generateIdsOnPathMatch(
+                    call.request.path(),
+                    configuration
+                )
+                if (traceAndSpan != null) {
+                    call.attributes.put(traceAndSpanKey, traceAndSpan)
+                    setHeaders(call.response, traceAndSpan, configuration.b3Header)
+                }
+            }
+
+            return instance
+        }
+
+        private fun readIdsFromRequest(headers: Headers): TraceAndSpan? {
+            val b3 = headers[B3_HEADER]
+            if (b3 != null) {
+                val ids = b3.split("-")
+                return TraceAndSpan(ids[0], ids[1])
+            }
+            val traceId = headers[TRACE_ID_HEADER]
+            val spanId = headers[SPAN_ID_HEADER]
+            return if (traceId != null && spanId != null) {
+                TraceAndSpan(traceId, spanId)
+            } else null
+        }
+
+        private fun generateIdsOnPathMatch(path: String, configuration: ZipkinIds.Configuration) =
+            if (foundPrefixMatch(path, configuration.initiateTracePathPrefixes)) {
+                TraceAndSpan(nextId(configuration.idLength), nextId())
+            } else null
+
+        fun foundPrefixMatch(path: String, prefixes: Array<String>) =
+            prefixes.map { prefix -> path.startsWith(prefix) }
+                .fold(false) { acc, startsWith -> acc || startsWith }
+
         private fun setHeaders(response: ApplicationResponse, traceAndSpan: TraceAndSpan, b3Header: Boolean) =
             if (b3Header) {
                 response.header(B3_HEADER, "${traceAndSpan.traceId}-${traceAndSpan.spanId}")
@@ -66,36 +111,6 @@ class ZipkinIds {
                 response.header(TRACE_ID_HEADER, traceAndSpan.traceId)
                 response.header(SPAN_ID_HEADER, traceAndSpan.spanId)
             }
-
-        private fun readHeaders(headers: Headers): TraceAndSpan {
-            val b3 = headers[B3_HEADER]
-            val traceId = headers[TRACE_ID_HEADER]
-            return b3?.let {
-                TraceAndSpan(b3.split("-")[0], nextId())
-            } ?: traceId?.let {
-                TraceAndSpan(traceId, nextId())
-            } ?: nextId().let { newId ->
-                TraceAndSpan(newId, newId)
-            }
-        }
-
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ZipkinIds {
-            val configuration = Configuration().apply(configure)
-            val instance = ZipkinIds()
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.Setup, phase)
-
-            pipeline.intercept(phase) {
-                val call = call
-
-                val traceAndSpan = readHeaders(call.request.headers)
-
-                call.attributes.put(traceAndSpanKey, traceAndSpan)
-
-                setHeaders(call.response, traceAndSpan, configuration.b3Header)
-            }
-
-            return instance
-        }
     }
 }
 
