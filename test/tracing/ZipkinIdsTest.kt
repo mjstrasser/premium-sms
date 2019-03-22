@@ -28,7 +28,6 @@ internal class ZipkinIdsTest {
         }
     }
 
-
     @Nested
     inner class PathPrefixes {
         @Test
@@ -68,8 +67,8 @@ internal class ZipkinIdsTest {
         fun `headers should not be set if the feature is not installed`(): Unit = withTestApplication {
             handleRequest(HttpMethod.Get, "/").apply {
                 with(response.headers) {
-                    assertThat(contains(TRACE_ID_HEADER)).isFalse()
-                    assertThat(contains(SPAN_ID_HEADER)).isFalse()
+                    assertThat(get(TRACE_ID_HEADER)).isNull()
+                    assertThat(get(SPAN_ID_HEADER)).isNull()
                 }
             }
         }
@@ -83,8 +82,8 @@ internal class ZipkinIdsTest {
                 addHeader(B3_HEADER, "$traceId-$spanId")
             }.apply {
                 with(response.headers) {
-                    assertThat(contains(TRACE_ID_HEADER)).isTrue()
-                    assertThat(contains(SPAN_ID_HEADER)).isTrue()
+                    assertThat(get(TRACE_ID_HEADER)).isEqualTo(traceId)
+                    assertThat(get(SPAN_ID_HEADER)).isEqualTo(spanId)
                 }
             }
         }
@@ -99,41 +98,23 @@ internal class ZipkinIdsTest {
                 addHeader(SPAN_ID_HEADER, spanId)
             }.apply {
                 with(response.headers) {
-                    assertThat(contains(TRACE_ID_HEADER)).isTrue()
-                    assertThat(contains(SPAN_ID_HEADER)).isTrue()
+                    assertThat(get(TRACE_ID_HEADER)).isEqualTo(traceId)
+                    assertThat(get(SPAN_ID_HEADER)).isEqualTo(spanId)
                 }
             }
         }
 
         @Test
-        fun `should set trace ID and span ID to the same value if no X-B3-TraceId header in request`(): Unit =
+        fun `should set new values of trace ID and span ID if no X-B3-TraceId header in request`(): Unit =
             withTestApplication {
                 application.install(ZipkinIds)
                 handleRequest(HttpMethod.Get, "/").apply {
                     with(response.headers) {
                         assertThat(contains(TRACE_ID_HEADER)).isTrue()
                         assertThat(contains(SPAN_ID_HEADER)).isTrue()
-                        assertThat(get(TRACE_ID_HEADER)).isEqualTo(get(SPAN_ID_HEADER))
                     }
                 }
             }
-
-        @Test
-        fun `should set a new span ID if there is a trace ID in request`(): Unit = withTestApplication {
-            application.install(ZipkinIds)
-            val traceId = nextId()
-            handleRequest(HttpMethod.Get, "/") {
-                addHeader(TRACE_ID_HEADER, traceId)
-                addHeader(SPAN_ID_HEADER, traceId)
-            }.apply {
-                with(response.headers) {
-                    assertThat(contains(TRACE_ID_HEADER)).isTrue()
-                    assertThat(contains(SPAN_ID_HEADER)).isTrue()
-                    assertThat(get(TRACE_ID_HEADER)).isNotEqualTo(get(SPAN_ID_HEADER))
-                    assertThat(get(TRACE_ID_HEADER)).isEqualTo(traceId)
-                }
-            }
-        }
     }
 
     @Nested
@@ -141,7 +122,7 @@ internal class ZipkinIdsTest {
         @Test
         fun `should not be set if the feature is not installed`(): Unit = withTestApplication {
             handleRequest(HttpMethod.Get, "/").apply {
-                assertThat(request.call.attributes.contains(traceAndSpanKey)).isFalse()
+                assertThat(request.call.attributes.getOrNull(traceAndSpanKey)).isNull()
             }
         }
 
@@ -154,12 +135,9 @@ internal class ZipkinIdsTest {
                 addHeader(TRACE_ID_HEADER, traceId)
                 addHeader(SPAN_ID_HEADER, spanId)
             }.apply {
-                with(request.call.attributes) {
-                    assertThat(contains(traceAndSpanKey)).isTrue()
-                    // Only compare trace ID because span ID is set to a new value.
-                    get(traceAndSpanKey).also { id ->
-                        assertThat(id.traceId).isEqualTo(traceId)
-                    }
+                with(request.call.attributes[traceAndSpanKey]) {
+                    assertThat(this.traceId).isEqualTo(traceId)
+                    assertThat(this.spanId).isEqualTo(spanId)
                 }
             }
         }
