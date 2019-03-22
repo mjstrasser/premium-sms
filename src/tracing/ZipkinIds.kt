@@ -16,6 +16,7 @@ import kotlin.random.Random
 const val B3_HEADER = "b3"
 const val TRACE_ID_HEADER = "X-B3-TraceId"
 const val SPAN_ID_HEADER = "X-B3-SpanId"
+const val PARENT_SPAN_ID_HEADER = "X-B3-ParentSpanId"
 
 private val prng = Random(System.nanoTime())
 
