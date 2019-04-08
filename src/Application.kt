@@ -1,5 +1,6 @@
 package mjs.kotlin
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -19,6 +20,7 @@ import mjs.kotlin.tracing.IdLength
 import mjs.kotlin.tracing.ZipkinIds
 import mjs.kotlin.tracing.zipkinMdc
 import org.slf4j.event.Level
+import java.text.DateFormat
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -39,7 +41,10 @@ fun Application.module(testing: Boolean = false) {
     }
 
     install(ContentNegotiation) {
-        jackson {}
+        jackson {
+            registerModule(JavaTimeModule())
+            dateFormat = DateFormat.getInstance()
+        }
     }
 
     routing {
