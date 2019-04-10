@@ -43,3 +43,8 @@ dependencies {
     testCompile "com.willowtreeapps.assertk:assertk-jvm:0.13"
     api "io.ktor:ktor-client-mock:$ktor_version"
 }
+
+test {
+    useJUnitPlatform()
+    dependsOn 'cleanTest'
+}
