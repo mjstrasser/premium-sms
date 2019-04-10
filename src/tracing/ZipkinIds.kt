@@ -11,6 +11,7 @@ import io.ktor.response.ApplicationResponse
 import io.ktor.response.header
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelinePhase
+import mjs.kotlin.tracing.ZipkinIds.Configuration
 import kotlin.random.Random
 
 const val B3_HEADER = "b3"
@@ -27,26 +28,39 @@ fun nextId(idLength: IdLength = IdLength.ID_64_BITS) = when (idLength) {
     IdLength.ID_128_BITS -> String.format("%016x%016x", prng.nextLong(), prng.nextLong())
 }
 
-data class TraceAndSpan(val traceId: String, val spanId: String)
+data class TraceAndSpan(val b3Header: Boolean, val traceId: String, val spanId: String)
 
 /**
- * Ktor feature that handles Zipkin headers for trace ID and span ID. It currently mimics the
- * behaviour of [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth).
+ * Ktor feature that handles Zipkin headers for trace ID and span ID. It behaves similarly to
+ * [Spring Cloud Sleuth](https://spring.io/projects/spring-cloud-sleuth).
  *
- * When installed, the headers are handled as follows:
+ * When the feature is installed, headers are handled as follows:
  *
- * - If the request contains an X-B3-TraceId header, set the same header into the response
- *   and set a new 64-bit ID into the X-B3-SpanId header into the response.
+ * - If the request contains X-B3-TraceId and X-B3-SpanId headers, set the same headers
+ *   into the response.
  *
- * - If the request does not contain an X-B3-TraceId header, set a new 64-bit ID
- *   into both the X-B3-TraceId and X-B3-SpanId headers.
+ * - If the request contains a b3 header, set the same header into the response.
+ *
+ * - If the request does not contain any of these headers and its path begins with
+ *   one of the configured prefixes, set new ID values
+ *   into either X-B3-TraceId and X-B3-SpanId, or a b3 header, by configuration.
+ *
+ * @see [Configuration]
  */
 class ZipkinIds {
 
+    /**
+     * Configuration for ZipkinIds.
+     *
+     * - [b3Header]: generate `b3` headers instead of `X-B3-TraceId` and `X-B3-SpanId` headers.
+     * - [idLength]: generate either 64-bit (default) or 128-bit trace ID values (@see [IdLength]).
+     * - [initiateTracePathPrefixes]: only generate trace and span ID values if the request path
+     *   begins with one of the specified prefixes.
+     */
     class Configuration {
         var b3Header = false
-        var initiateTracePathPrefixes = arrayOf("/")
         var idLength = IdLength.ID_64_BITS
+        var initiateTracePathPrefixes = arrayOf("/")
     }
 
     /**
@@ -76,7 +90,7 @@ class ZipkinIds {
                 )
                 if (traceAndSpan != null) {
                     call.attributes.put(traceAndSpanKey, traceAndSpan)
-                    setHeaders(call.response, traceAndSpan, configuration.b3Header)
+                    setHeaders(call.response, traceAndSpan)
                 }
             }
 
@@ -87,26 +101,26 @@ class ZipkinIds {
             val b3 = headers[B3_HEADER]
             if (b3 != null) {
                 val ids = b3.split("-")
-                return TraceAndSpan(ids[0], ids[1])
+                return TraceAndSpan(true, ids[0], ids[1])
             }
             val traceId = headers[TRACE_ID_HEADER]
             val spanId = headers[SPAN_ID_HEADER]
             return if (traceId != null && spanId != null) {
-                TraceAndSpan(traceId, spanId)
+                TraceAndSpan(false, traceId, spanId)
             } else null
         }
 
         private fun generateIdsOnPathMatch(path: String, configuration: ZipkinIds.Configuration) =
             if (foundPrefixMatch(path, configuration.initiateTracePathPrefixes)) {
-                TraceAndSpan(nextId(configuration.idLength), nextId())
+                TraceAndSpan(configuration.b3Header, nextId(configuration.idLength), nextId())
             } else null
 
         fun foundPrefixMatch(path: String, prefixes: Array<String>) =
             prefixes.map { prefix -> path.startsWith(prefix) }
                 .fold(false) { acc, startsWith -> acc || startsWith }
 
-        private fun setHeaders(response: ApplicationResponse, traceAndSpan: TraceAndSpan, b3Header: Boolean) =
-            if (b3Header) {
+        private fun setHeaders(response: ApplicationResponse, traceAndSpan: TraceAndSpan) =
+            if (traceAndSpan.b3Header) {
                 response.header(B3_HEADER, "${traceAndSpan.traceId}-${traceAndSpan.spanId}")
             } else {
                 response.header(TRACE_ID_HEADER, traceAndSpan.traceId)

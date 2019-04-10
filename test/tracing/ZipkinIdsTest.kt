@@ -29,7 +29,7 @@ internal class ZipkinIdsTest {
     }
 
     @Nested
-    inner class PathPrefixes {
+    inner class PathPrefixMatching {
         @Test
         fun `should return false if a path does not match any of the prefixes`() {
             assertThat(foundPrefixMatch("/health", arrayOf("/api", "/login", "/logout"))).isFalse()
@@ -74,7 +74,7 @@ internal class ZipkinIdsTest {
         }
 
         @Test
-        fun `b3 header should be read if present`(): Unit = withTestApplication {
+        fun `b3 header should be read and set if present`(): Unit = withTestApplication {
             application.install(ZipkinIds)
             val traceId = nextId()
             val spanId = nextId()
@@ -82,15 +82,16 @@ internal class ZipkinIdsTest {
                 addHeader(B3_HEADER, "$traceId-$spanId")
             }.apply {
                 with(response.headers) {
-                    assertThat(get(TRACE_ID_HEADER)).isEqualTo(traceId)
-                    assertThat(get(SPAN_ID_HEADER)).isEqualTo(spanId)
+                    assertThat(get(B3_HEADER)).isEqualTo("$traceId-$spanId")
                 }
             }
         }
 
         @Test
-        fun `X-B3-TraceId and X-B3-SpanId headers should be read if present`(): Unit = withTestApplication {
-            application.install(ZipkinIds)
+        fun `X-B3-TraceId and X-B3-SpanId headers should be read and set if present`(): Unit = withTestApplication {
+            application.install(ZipkinIds) {
+                b3Header = true
+            }
             val traceId = nextId()
             val spanId = nextId()
             handleRequest(HttpMethod.Get, "/") {
@@ -104,17 +105,37 @@ internal class ZipkinIdsTest {
             }
         }
 
-        @Test
-        fun `should set new values of trace ID and span ID if no X-B3-TraceId header in request`(): Unit =
-            withTestApplication {
-                application.install(ZipkinIds)
-                handleRequest(HttpMethod.Get, "/").apply {
-                    with(response.headers) {
-                        assertThat(contains(TRACE_ID_HEADER)).isTrue()
-                        assertThat(contains(SPAN_ID_HEADER)).isTrue()
+        @Nested
+        inner class HeaderTypeConfiguration {
+            @Test
+            fun `should set new X-B3- headers if b3 not configured and there are no tracing headers in request`(): Unit =
+                withTestApplication {
+                    application.install(ZipkinIds)
+                    handleRequest(HttpMethod.Get, "/").apply {
+                        with(response.headers) {
+                            assertThat(contains(TRACE_ID_HEADER)).isTrue()
+                            assertThat(contains(SPAN_ID_HEADER)).isTrue()
+                            assertThat(contains(B3_HEADER)).isFalse()
+                        }
                     }
                 }
-            }
+
+            @Test
+            fun `should set new b3 headers if b3 is configured and there are no tracing headers in request`(): Unit =
+                withTestApplication {
+                    application.install(ZipkinIds) {
+                        b3Header = true
+                    }
+                    handleRequest(HttpMethod.Get, "/").apply {
+                        with(response.headers) {
+                            assertThat(contains(TRACE_ID_HEADER)).isFalse()
+                            assertThat(contains(SPAN_ID_HEADER)).isFalse()
+                            assertThat(contains(B3_HEADER)).isTrue()
+                        }
+                    }
+                }
+
+        }
     }
 
     @Nested
