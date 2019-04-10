@@ -1,4 +1,4 @@
-package mjs.kotlin
+package premiumSms.charging
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.application.Application
@@ -14,18 +14,18 @@ import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
-import mjs.kotlin.sms.MOMessage
-import mjs.kotlin.sms.processMoMessage
+import mjs.kotlin.sms.Msisdn
 import mjs.kotlin.tracing.ZipkinIds
 import mjs.kotlin.tracing.zipkinMdc
 import org.slf4j.event.Level
+import premiumSms.charging.charging.processCharge
 import java.text.DateFormat
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-@Suppress("UNUSED_PARAMETER")
-@kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+data class Charge(val msisdn: Msisdn, val chargeId: Msisdn, val amount: Int)
+
+fun Application.module() {
 
     install(ZipkinIds) {
         initiateTracePathPrefixes = arrayOf("/api")
@@ -40,7 +40,7 @@ fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {
         jackson {
             registerModule(JavaTimeModule())
-            dateFormat = DateFormat.getInstance()
+            dateFormat = DateFormat.getDateInstance()
         }
     }
 
@@ -49,15 +49,14 @@ fun Application.module(testing: Boolean = false) {
             call.respond(mapOf("status" to "UP"))
         }
 
-        post("/api/v1/premium-sms") {
+        post("/api/v1/charge") {
             try {
-                val moMessage = call.receive<MOMessage>()
-                val result = processMoMessage(moMessage)
-                call.respond(HttpStatusCode.Accepted, result)
+                val charge = call.receive<Charge>()
+                val result = processCharge(charge)
+                call.respond(HttpStatusCode.OK, result)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, e.message ?: "There was an error processing your request")
             }
         }
     }
 }
-

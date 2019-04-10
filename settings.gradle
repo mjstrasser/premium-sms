@@ -1,1 +1,3 @@
-rootProject.name = "premium-sms"
+rootProject.name = 'premium-sms'
+
+include 'charging'
