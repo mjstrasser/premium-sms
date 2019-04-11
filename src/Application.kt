@@ -14,10 +14,10 @@ import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
+import mjs.kotlin.features.ZipkinIds
+import mjs.kotlin.features.zipkinMdc
 import mjs.kotlin.sms.MOMessage
 import mjs.kotlin.sms.processMoMessage
-import mjs.kotlin.tracing.ZipkinIds
-import mjs.kotlin.tracing.zipkinMdc
 import org.slf4j.event.Level
 import java.text.DateFormat
 

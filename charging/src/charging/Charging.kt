@@ -1,9 +1,9 @@
 package premiumSms.charging.charging
 
 import kotlinx.coroutines.delay
-import mjs.kotlin.sms.Msisdn
 import org.slf4j.LoggerFactory
 import premiumSms.charging.Charge
+import premiumSms.charging.Msisdn
 import java.time.Instant
 import java.util.*
 
