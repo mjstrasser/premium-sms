@@ -14,13 +14,14 @@ import io.ktor.response.respond
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
+import io.ktor.server.cio.EngineMain
 import mjs.kotlin.features.ZipkinIds
 import mjs.kotlin.features.zipkinMdc
 import org.slf4j.event.Level
 import premiumSms.charging.charging.processCharge
 import java.text.DateFormat
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>): Unit = EngineMain.main(args)
 
 data class Charge(val msisdn: Msisdn, val chargeId: Msisdn, val amount: Int)
 
