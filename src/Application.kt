@@ -1,4 +1,4 @@
-package mjs.kotlin
+package premiumSms
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.application.Application
@@ -15,18 +15,18 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.cio.EngineMain
+import io.ktor.util.KtorExperimentalAPI
 import mjs.kotlin.features.ZipkinIds
 import mjs.kotlin.features.zipkinMdc
-import mjs.kotlin.sms.MOMessage
-import mjs.kotlin.sms.processMoMessage
 import org.slf4j.event.Level
+import premiumSms.sms.MOMessage
+import premiumSms.sms.processMoMessage
 import java.text.DateFormat
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
-@Suppress("UNUSED_PARAMETER")
-@kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+@KtorExperimentalAPI
+fun Application.module() {
 
     install(ZipkinIds) {
         initiateTracePathPrefixes = arrayOf("/api")
@@ -46,7 +46,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        get("/health") {
+        get("/") {
             call.respond(mapOf("status" to "UP"))
         }
 

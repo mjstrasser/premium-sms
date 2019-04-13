@@ -1,4 +1,4 @@
-package mjs.kotlin.sms
+package premiumSms.sms
 
 import io.ktor.application.ApplicationCall
 import io.ktor.client.HttpClient
@@ -8,9 +8,8 @@ import io.ktor.util.KtorExperimentalAPI
 import mjs.kotlin.features.ClientIds
 import mjs.kotlin.features.ZipkinIds
 
-//val logger = LoggerFactory.getLogger("Charging")
-
 @KtorExperimentalAPI
+@Suppress("UNUSED_PARAMETER")
 suspend fun ApplicationCall.applyCharge(service: PremiumSmsService, moMessage: MOMessage) {
 
     val client = HttpClient(CIO) {

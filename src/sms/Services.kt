@@ -1,4 +1,4 @@
-package mjs.kotlin.sms
+package premiumSms.sms
 
 data class PremiumSmsService(
     val name: String,
@@ -28,7 +28,7 @@ val SERVICE_CHARGES = mapOf(
 
 class UnknownServiceException(message: String) : Exception(message)
 
-suspend fun premiumSmsService(serviceMsisdn: Msisdn): PremiumSmsService {
+fun premiumSmsService(serviceMsisdn: Msisdn): PremiumSmsService {
     return SERVICE_CHARGES[serviceMsisdn]
         ?: throw UnknownServiceException("No premium SMS service for $serviceMsisdn")
 }

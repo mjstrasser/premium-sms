@@ -1,4 +1,4 @@
-package mjs.kotlin.sms
+package premiumSms.sms
 
 typealias Msisdn = String
 
