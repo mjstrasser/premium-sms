@@ -45,14 +45,14 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        get("/") {
+        get("/health") {
             call.respond(mapOf("status" to "UP"))
         }
 
         post("/api/v1/premium-sms") {
             try {
                 val moMessage = call.receive<MOMessage>()
-                val result = processMoMessage(moMessage)
+                val result = call.processMoMessage(moMessage)
                 call.respond(HttpStatusCode.Accepted, result)
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, e.message ?: "There was an error processing your request")
