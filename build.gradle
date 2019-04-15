@@ -38,7 +38,7 @@ dependencies {
     compile "io.ktor:ktor-jackson:$ktor_version"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8"
     
-    compile 'com.michaelstrasser:ktor-feature-zipkin:0.0.6'
+    compile 'com.michaelstrasser:ktor-features-zipkin:0.0.8'
 
     testCompile "org.junit.jupiter:junit-jupiter-api:5.4.0"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.0"
