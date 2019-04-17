@@ -47,7 +47,7 @@ fun Application.module() {
     }
 
     routing {
-        get("/health") {
+        get("/") {
             call.respond(mapOf("status" to "UP"))
         }
 
