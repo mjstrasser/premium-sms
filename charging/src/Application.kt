@@ -15,8 +15,8 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import io.ktor.server.cio.EngineMain
-import mjs.kotlin.features.ZipkinIds
-import mjs.kotlin.features.zipkinMdc
+import mjs.ktor.features.zipkin.ZipkinIds
+import mjs.ktor.features.zipkin.zipkinMdc
 import org.slf4j.event.Level
 import premiumSms.charging.charging.processCharge
 import java.text.DateFormat
