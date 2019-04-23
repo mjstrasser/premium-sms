@@ -1,0 +1,33 @@
+project_name: premium-sms
+containers:
+  build-env:
+    image: openjdk:8u141-jdk
+    volumes:
+      - local: .
+        container: /code
+        options: cached
+      - local: .gradle-cache
+        container: /home/container-user/.gradle
+        options: cached
+      - local: ~/.m2
+        container: /home/container-user/.m2
+        options: cached
+    working_directory: /code
+    environment:
+      GRADLE_OPTS: -Dorg.gradle.daemon=false
+    run_as_current_user:
+      enabled: true
+      home_directory: /home/container-user
+
+tasks:
+  build:
+    description: Build the application.
+    run:
+      container: build-env
+      command: ./gradlew assembleDist
+
+  unitTest:
+    description: Run the unit tests.
+    run:
+      container: build-env
+      command: ./gradlew test
