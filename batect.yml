@@ -31,3 +31,9 @@ tasks:
     run:
       container: build-env
       command: ./gradlew test
+
+  shell:
+    description: Start a shell in the development environment.
+    run:
+      container: build-env
+      command: bash
