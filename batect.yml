@@ -14,7 +14,7 @@ containers:
         options: cached
     working_directory: /code
     environment:
-      GRADLE_OPTS: -Dorg.gradle.daemon=false
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx512m
     run_as_current_user:
       enabled: true
       home_directory: /home/container-user
