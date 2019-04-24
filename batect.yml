@@ -24,7 +24,7 @@ tasks:
     description: Build the application.
     run:
       container: build-env
-      command: ./gradlew assembleDist
+      command: ./gradlew shadowJar
 
   unitTest:
     description: Run the unit tests.
