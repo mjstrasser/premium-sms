@@ -55,7 +55,13 @@ test {
 
 mainClassName = 'io.ktor.server.netty.EngineMain'
 shadowJar {
+    version = null
     manifest {
         attributes 'Main-Class': mainClassName
     }
+}
+
+task assembleForContainer(type: Copy) {
+    from shadowJar
+    into '../dev-infrastructure/charging-service'
 }
