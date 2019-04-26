@@ -45,7 +45,7 @@ class JourneyTest {
                     contentType = ContentType.Application.Json
                 )
             }
-            assertThat(response.headers["b3x"]).isEqualTo(b3Header)
+            assertThat(response.headers["b3"]).isEqualTo(b3Header)
             val body = json.readValue<MoResponse>(response.readBytes())
             assertThat(body.moMessage).isEqualTo(message)
         }

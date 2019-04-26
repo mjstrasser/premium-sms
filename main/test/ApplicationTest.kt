@@ -22,15 +22,4 @@ class ApplicationTest {
             assertThat(response.content).isEqualTo("""{"status":"UP"}""")
         }
     }
-
-//    @Test
-//    fun `an MO message should be echoed`(): Unit = withTestApplication({ module() }) {
-//        val moMessage = """{"from":"61412345678","to":"191191","text":"This is a test"}"""
-//        with(handleRequest(HttpMethod.Post, "/api/v1/premium-sms") {
-//            addHeader("Content-Type", "application/json")
-//            setBody(moMessage)
-//        }) {
-//            assertThat(response.status()).isEqualTo(HttpStatusCode.Accepted)
-//        }
-//    }
 }
