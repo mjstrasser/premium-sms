@@ -1,0 +1,47 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'kotlin'
+
+group 'premium-sms'
+
+sourceSets {
+    journeyTest.kotlin.srcDirs = ['journeyTest']
+}
+
+configurations {
+    journeyTestCompile.extendsFrom testCompile
+    journeyTestRuntime.extendsFrom testRuntime
+}
+
+dependencies {
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.4.0"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.0"
+    testCompile "io.ktor:ktor-server-tests:$ktor_version"
+    testCompile "com.willowtreeapps.assertk:assertk-jvm:0.13"
+    testCompile "io.ktor:ktor-client-core:$ktor_version"
+    testCompile "io.ktor:ktor-client-cio:$ktor_version"
+    testCompile "io.ktor:ktor-jackson:$ktor_version"
+    testCompile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8"
+    testCompile 'com.michaelstrasser:ktor-features-zipkin:0.1.2'
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+    maven { url 'https://kotlin.bintray.com/ktor' }
+}
+
+task journeyTest(type: Test) {
+    description 'Runs the journey tests'
+    group 'Verification'
+    testClassesDirs = sourceSets.journeyTest.output.classesDirs
+    classpath = sourceSets.journeyTest.runtimeClasspath
+}

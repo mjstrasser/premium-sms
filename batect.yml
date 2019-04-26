@@ -19,6 +19,20 @@ containers:
       enabled: true
       home_directory: /home/container-user
 
+  charging-service:
+    build_directory: dev-infrastructure/charging-service
+    ports:
+      - local: 8081
+        container: 8081
+
+  main-service:
+    build_directory: dev-infrastructure/main-service
+    dependencies:
+      - charging-service
+    ports:
+      - local: 8080
+        container: 8080
+
 tasks:
   build:
     description: Build the application.
@@ -37,3 +51,13 @@ tasks:
     run:
       container: build-env
       command: bash
+
+  journeyTest:
+    description: Run the journey tests
+    prerequisites:
+      - build
+    dependencies:
+      - main-service
+    run:
+      container: build-env
+      command: ./gradlew journeyTest
