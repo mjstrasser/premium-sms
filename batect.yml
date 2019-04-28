@@ -35,10 +35,10 @@ containers:
 
 tasks:
   build:
-    description: Build the application.
+    description: Build the services and copy the jars into the Docker directories
     run:
       container: build-env
-      command: ./gradlew shadowJar
+      command: ./gradlew shadowJar assembleForContainer
 
   unitTest:
     description: Run the unit tests.
@@ -61,3 +61,13 @@ tasks:
     run:
       container: build-env
       command: ./gradlew journeyTest
+
+  journeyShell:
+    description: Run the journey tests
+    prerequisites:
+      - build
+    dependencies:
+      - main-service
+    run:
+      container: build-env
+      command: bash

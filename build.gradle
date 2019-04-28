@@ -45,8 +45,5 @@ task journeyTest(type: Test) {
     testClassesDirs = sourceSets.journeyTest.output.classesDirs
     classpath = sourceSets.journeyTest.runtimeClasspath
     useJUnitPlatform()
+    dependsOn 'cleanJourneyTest'
 }
-
-//journeyTest {
-//    useJUnitPlatform()
-//}

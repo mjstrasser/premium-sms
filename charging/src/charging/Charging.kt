@@ -14,7 +14,7 @@ data class ChargeResult(val amount: Int, val id: UUID, val timestamp: Instant)
 class InsufficientFundsException(message: String) : Exception(message)
 
 suspend fun processCharge(charge: Charge): ChargeResult {
-    logger.info("Processing charge $charge")
+    logger.info("Processing $charge")
     val id = UUID.randomUUID()
     val timestamp = Instant.now()
 
@@ -34,19 +34,26 @@ suspend fun processCharge(charge: Charge): ChargeResult {
     )
 }
 
-suspend fun hasSufficientFunds(msisdn: Msisdn, amount: Int): Boolean {
-    delay(20)
-    return (msisdn.substring(8).toInt() + amount) % 3 > 0
-}
+/**
+ * A MSISDN is post-paid if the last digit is 0–4 inclusive.
+ */
+fun isPostPaid(msisdn: Msisdn) = msisdn.last() < '5'
 
 suspend fun applyPostPaidCharge(amount: Int) {
-    logger.info("Applying post-paid charge of $amount cents")
     delay(30)
+    logger.info("Applying post-paid charge of $amount cents")
+}
+
+/**
+ * A MSISDN has sufficient funds if its last digit is 7, 8 or 9.
+ */
+@Suppress("UNUSED_PARAMETER")
+suspend fun hasSufficientFunds(msisdn: Msisdn, amount: Int): Boolean {
+    delay(20)
+    return msisdn.last() > '6'
 }
 
 suspend fun applyPrepaidCharge(amount: Int) {
-    logger.info("Applying pre-paid charge of $amount cents")
     delay(100)
+    logger.info("Applying pre-paid charge of $amount cents")
 }
-
-fun isPostPaid(msisdn: Msisdn) = msisdn.substring(4).toInt() % 2 == 0
