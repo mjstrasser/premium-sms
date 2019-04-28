@@ -17,22 +17,31 @@ data class ChargeRequest(val msisdn: Msisdn, val chargeId: Msisdn, val amount: I
 @Suppress("UNUSED_PARAMETER")
 suspend fun ApplicationCall.applyCharge(service: PremiumSmsService, moMessage: MOMessage) {
 
+    fun chargingUrl(): String {
+        val config = application.environment.config.config("ktor.charging")
+        return "http://${config.property("host").getString()}:${config.property("port").getString()}/api/v1/charge"
+    }
+
     val json = jacksonObjectMapper()
-    HttpClient(CIO) {
-        attributes.getOrNull(ZipkinIds.tracingPartsKey)?.let { it ->
-            logger.info("Installing ClientIds for $it")
-            install(ClientIds) {
-                tracingParts = it
+    try {
+        val client = HttpClient(CIO) {
+            attributes.getOrNull(ZipkinIds.tracingPartsKey)?.let { it ->
+                logger.info("Installing ClientIds for $it")
+                install(ClientIds) {
+                    tracingParts = it
+                }
             }
         }
-    }.use { client ->
-        val response = client.post<String>("http://localhost:8081/api/v1/charge") {
+        val url = chargingUrl()
+        logger.info("Posting request to $url")
+        val response = client.post<String>(url) {
             body = TextContent(
                 json.writeValueAsString(ChargeRequest(moMessage.from, service.serviceMsisdn, service.charge)),
                 contentType = ContentType.Application.Json
             )
         }
         logger.info("Charging response: $response")
+    } catch (e: Exception) {
+        logger.error("Client request failure", e)
     }
-
 }

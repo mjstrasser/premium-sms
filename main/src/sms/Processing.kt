@@ -16,9 +16,10 @@ suspend fun ApplicationCall.processMoMessage(moMessage: MOMessage): MoResult {
     val timestamp = Instant.now()
 
     val service = premiumSmsService(moMessage.to)
+    logger.info("Processing service {}", service)
+
     applyCharge(service, moMessage)
 
-    logger.info("Processing service {}", service)
     return MoResult(moMessage, id, timestamp)
 }
 

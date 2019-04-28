@@ -18,10 +18,14 @@ import io.ktor.server.cio.EngineMain
 import io.ktor.util.KtorExperimentalAPI
 import mjs.ktor.features.zipkin.ZipkinIds
 import mjs.ktor.features.zipkin.zipkinMdc
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import premiumSms.sms.MOMessage
 import premiumSms.sms.processMoMessage
 import java.text.DateFormat
+
+val logger: Logger = LoggerFactory.getLogger("Main")
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
@@ -53,6 +57,7 @@ fun Application.module() {
         post("/api/v1/premium-sms") {
             try {
                 val moMessage = call.receive<MOMessage>()
+                logger.info("Received request $moMessage")
                 val result = call.processMoMessage(moMessage)
                 call.respond(HttpStatusCode.Accepted, result)
             } catch (e: Exception) {

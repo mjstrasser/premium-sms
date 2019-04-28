@@ -17,9 +17,12 @@ import io.ktor.routing.routing
 import io.ktor.server.cio.EngineMain
 import mjs.ktor.features.zipkin.ZipkinIds
 import mjs.ktor.features.zipkin.zipkinMdc
+import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import premiumSms.charging.charging.processCharge
 import java.text.DateFormat
+
+val logger = LoggerFactory.getLogger("Charging")
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
@@ -54,6 +57,7 @@ fun Application.module() {
         post("/api/v1/charge") {
             try {
                 val charge = call.receive<Charge>()
+                logger.info("Received request $charge")
                 val result = processCharge(charge)
                 call.respond(HttpStatusCode.OK, result)
             } catch (e: Exception) {
