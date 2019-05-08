@@ -9,7 +9,7 @@ import io.ktor.content.TextContent
 import io.ktor.http.ContentType
 import io.ktor.util.KtorExperimentalAPI
 import mjs.ktor.features.zipkin.ClientIds
-import mjs.ktor.features.zipkin.ZipkinIds
+import mjs.ktor.features.zipkin.tracingParts
 
 data class ChargeRequest(val msisdn: Msisdn, val chargeId: Msisdn, val amount: Int)
 
@@ -25,7 +25,7 @@ suspend fun ApplicationCall.applyCharge(service: PremiumSmsService, moMessage: M
     val json = jacksonObjectMapper()
     try {
         val client = HttpClient(CIO) {
-            attributes.getOrNull(ZipkinIds.tracingPartsKey)?.let { it ->
+            tracingParts?.let { it ->
                 logger.info("Installing ClientIds for $it")
                 install(ClientIds) {
                     tracingParts = it

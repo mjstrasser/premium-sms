@@ -27,6 +27,7 @@ repositories {
     mavenLocal()
     jcenter()
     maven { url 'https://kotlin.bintray.com/ktor' }
+    maven { url 'https://dl.bintray.com/mjstrasser/maven'}
 }
 
 dependencies {
@@ -38,7 +39,7 @@ dependencies {
     compile "io.ktor:ktor-jackson:$ktor_version"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8"
 
-    compile 'com.michaelstrasser:ktor-features-zipkin:0.1.6'
+    compile 'com.michaelstrasser:ktor-features-zipkin:0.2.0'
 
     testCompile "org.junit.jupiter:junit-jupiter-api:5.4.0"
     testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.0"
