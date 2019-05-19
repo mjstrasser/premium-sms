@@ -1,0 +1,82 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: premium-sms
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: premium-sms
+  name: premium-sms-charging-service
+  labels:
+    app: premium-sms-charging-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: premium-sms-charging-service
+  template:
+    metadata:
+      labels:
+        app: premium-sms-charging-service
+    spec:
+      containers:
+        - image: asia.gcr.io/spheric-mission-238712/premium-sms-charging-service:latest
+          name: premium-sms-charging-service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: premium-sms
+  name: charging-service
+spec:
+  selector:
+    app: premium-sms-charging-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8081
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: premium-sms
+  name: premium-sms-main-service
+  labels:
+    app: premium-sms-main-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: premium-sms-main-service
+  template:
+    metadata:
+      labels:
+        app: premium-sms-main-service
+    spec:
+      containers:
+        - image: asia.gcr.io/spheric-mission-238712/premium-sms-main-service:latest
+          name: premium-sms-main-service
+          env:
+            - name: CHARGING_PORT
+              value: "80"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: premium-sms
+  name: main-service
+spec:
+  selector:
+    app: premium-sms-main-service
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
