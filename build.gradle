@@ -37,7 +37,8 @@ dependencies {
     testCompile "io.ktor:ktor-client-cio:$ktor_version"
     testCompile "io.ktor:ktor-jackson:$ktor_version"
     testCompile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.8"
-    testCompile 'com.michaelstrasser:ktor-features-zipkin:0.2.0'
+    
+    testCompile "com.michaelstrasser:ktor-features-zipkin:$ktor_features_zipkin_version"
 }
 
 task journeyTest(type: Test) {
