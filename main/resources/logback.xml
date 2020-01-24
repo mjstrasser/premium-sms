@@ -4,8 +4,15 @@
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] [%X{b3Id}] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
+    <appender name="GELF" class="de.siegmar.logbackgelf.GelfUdpAppender">
+        <graylogHost>localhost</graylogHost>
+        <graylogPort>12201</graylogPort>
+        <encoder class="de.siegmar.logbackgelf.GelfEncoder">
+            <staticField>source:main-service</staticField>
+        </encoder>
+    </appender>
     <root level="trace">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="GELF"/>
     </root>
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
