@@ -5,12 +5,14 @@
             </pattern>
         </encoder>
     </appender>
-    <appender name="GELF" class="de.siegmar.logbackgelf.GelfUdpAppender">
+    <appender name="GELF" class="com.github.pukkaone.gelf.logback.GelfAppender">
         <graylogHost>localhost</graylogHost>
-        <graylogPort>12201</graylogPort>
-        <encoder class="de.siegmar.logbackgelf.GelfEncoder">
-            <staticField>source:charging-service</staticField>
-        </encoder>
+        <locationIncluded>false</locationIncluded>
+        <loggerIncluded>true</loggerIncluded>
+        <markerIncluded>true</markerIncluded>
+        <mdcIncluded>true</mdcIncluded>
+        <threadIncluded>true</threadIncluded>
+        <additionalField>source=charging-service</additionalField>
     </appender>
     <root level="trace">
         <appender-ref ref="GELF"/>

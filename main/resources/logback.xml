@@ -4,12 +4,14 @@
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] [%X{b3Id}] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    <appender name="GELF" class="de.siegmar.logbackgelf.GelfUdpAppender">
+    <appender name="GELF" class="com.github.pukkaone.gelf.logback.GelfAppender">
         <graylogHost>localhost</graylogHost>
-        <graylogPort>12201</graylogPort>
-        <encoder class="de.siegmar.logbackgelf.GelfEncoder">
-            <staticField>source:main-service</staticField>
-        </encoder>
+        <locationIncluded>false</locationIncluded>
+        <loggerIncluded>true</loggerIncluded>
+        <markerIncluded>true</markerIncluded>
+        <mdcIncluded>true</mdcIncluded>
+        <threadIncluded>true</threadIncluded>
+        <additionalField>source=main-service</additionalField>
     </appender>
     <root level="trace">
         <appender-ref ref="GELF"/>
