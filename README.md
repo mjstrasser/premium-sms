@@ -55,7 +55,7 @@ These steps should be asynchronous.
 
 ### Notes
 
-* Message contents are passed through unchanged. Premium SMS systems can charge or route
+* Message contents are passed through unchanged. Premium SMS systems can also charge or route
   messages differently according to message contents.
 
 ## Components of this Premium SMS system
@@ -64,19 +64,14 @@ These steps should be asynchronous.
 
 * Accepts MO message from SMSC.
 * Maintains the database of Premium SMS services.
-* Calls **Mobile service service** to check if Premium SMS is enabled and if age restrictions apply.
-* Calls **Charging service** to apply the charge.
+* Calls **Account service** to apply the charge if possible.
 * Calls the provider API with the message.
 * *Future*: Sends MT messages to the SMSC.
 * *Future*: Accepts callbacks from the service provider.
 
-### Mobiel service service
+### Account service
 
 * Accepts account requests from the **Main service**
 * Determines if the mobile service has Premium SMS enabled and if age restrictions apply.
-
-### Charging service
-
-* Accepts charging requests from the **Main service**
 * Determines if the account is pre-paid or post-paid.
 * Determines if a pre-paid account has sufficient funds.
