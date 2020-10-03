@@ -70,7 +70,7 @@ These steps should be asynchronous.
 * *Future*: Sends MT messages to the SMSC.
 * *Future*: Accepts callbacks from the service provider.
 
-### Mobiel service service
+### Mobile service service
 
 * Accepts account requests from the **Main service**
 * Determines if the mobile service has Premium SMS enabled and if age restrictions apply.
