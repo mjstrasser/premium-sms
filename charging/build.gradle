@@ -63,5 +63,6 @@ shadowJar {
 
 task assembleForContainer(type: Copy) {
     from shadowJar
+    rename 'charging-.+\\.jar', 'charging.jar'
     into '../dev-infrastructure/charging-service'
 }

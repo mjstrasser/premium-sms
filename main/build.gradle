@@ -64,5 +64,6 @@ shadowJar {
 
 task assembleForContainer(type: Copy) {
     from shadowJar
+    rename 'main-.+\\.jar', 'main.jar'
     into '../dev-infrastructure/main-service'
 }
