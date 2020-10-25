@@ -23,7 +23,7 @@ spec:
         app: premium-sms-charging-service
     spec:
       containers:
-        - image: asia.gcr.io/spheric-mission-238712/premium-sms-charging-service:latest
+        - image: docker.io/mjstrasser/premium-sms-charging:latest
           name: premium-sms-charging-service
 
 ---
@@ -59,7 +59,7 @@ spec:
         app: premium-sms-main-service
     spec:
       containers:
-        - image: asia.gcr.io/spheric-mission-238712/premium-sms-main-service:latest
+        - image: docker.io/mjstrasser/premium-sms-main:latest
           name: premium-sms-main-service
           env:
             - name: CHARGING_PORT
