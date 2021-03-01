@@ -5,14 +5,13 @@ import assertk.assertions.isEqualTo
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.request.post
-import io.ktor.client.response.HttpResponse
-import io.ktor.client.response.readBytes
-import io.ktor.content.TextContent
-import io.ktor.http.ContentType
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.content.*
+import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import mjs.ktor.features.zipkin.SAMPLED_HEADER
 import mjs.ktor.features.zipkin.SPAN_ID_HEADER
@@ -49,7 +48,7 @@ class JourneyTest {
             runBlocking {
                 val b3Header = "${nextId()}-${nextId()}-1"
                 val message = MoMessage(postPaidMsisdn(), "190000", "JourneyTest")
-                val response = client.post<HttpResponse>("http://main-service:8080/api/v1/premium-sms") {
+                val response: HttpResponse = client.post("http://main-service:8080/api/v1/premium-sms") {
                     headers.append("b3", b3Header)
                     body = moMessageJson(message)
                 }
