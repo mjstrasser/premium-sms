@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mjstrasser/premium-sms/schemas/premium-sms-request.schema.json",
+  "title": "Premium SMS request",
+  "description": "Request to send a premium SMS message",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "description": "Timestamp when request was made",
+      "type": "string",
+      "format": "date-time"
+    },
+    "sender": {
+      "description": "Sender MSISDN (AUS only)",
+      "type": "string",
+      "pattern": "^614\\d{}$"
+    },
+    "recipient": {
+      "description": "Recipient phone number starting with 19 (AU only)",
+      "type": "string",
+      "pattern": "^19\\d{4,8}$"
+    },
+    "message": {
+      "description": "Message text to send",
+      "type": "string",
+      "maxLength": 160
+    }
+  },
+  "required": [
+    "timestamp",
+    "sender",
+    "recipient",
+    "message"
+  ]
+}
