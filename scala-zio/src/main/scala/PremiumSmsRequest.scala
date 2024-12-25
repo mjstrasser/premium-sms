@@ -1,4 +1,6 @@
 package mjs.premsms
 
-case class PremiumSmsRequest(sender: String, recipient: String, message: String)
+import java.time.OffsetDateTime
+
+case class PremiumSmsRequest(timestamp: OffsetDateTime, sender: String, recipient: String, message: String)
 
