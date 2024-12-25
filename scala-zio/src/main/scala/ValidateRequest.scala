@@ -17,10 +17,10 @@ def validateRequest(request: PremiumSmsRequest): ZIO[Any, InvalidRequestError, P
   else if request.message.isEmpty then
     ZIO.fail(EmptyMessageError)
   else
-    for {
+    for
       now <- Clock.currentDateTime
       validation <- if request.timestamp.isAfter(now) then
         ZIO.fail(FutureTimestampError)
       else
         ZIO.succeed(request)
-    } yield validation
+    yield validation
