@@ -5,10 +5,18 @@ import zio.{Random, Ref, Task, UIO, ZLayer}
 
 class InMemoryProviderRepo(map: Ref[Map[String, Provider]]) extends ProviderRepo:
 
+  override def save(provider: Provider): Task[String] =
+    for
+      _ <- map.update(_ + (provider.number -> provider))
+    yield provider.number
+
   override def findByNumber(number: String): Task[Option[Provider]] =
     map.get.map(_.get(number))
 
-  def addProvider(number: String, name: String, cost: BigDecimal, minimumAge: Int): UIO[InMemoryProviderRepo] =
+  def save(number: String,
+           name: String,
+           cost: BigDecimal,
+           minimumAge: Int): UIO[InMemoryProviderRepo] =
     for
       id <- Random.nextUUID
       provider = Provider(

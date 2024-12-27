@@ -1,29 +1,42 @@
 package mjs.premsms
 
+import providers.{Provider, ProviderRepo}
 import senders.{Sender, SenderRepo}
 
-import zio.{Clock, ZIO}
+import zio.{Clock, UIO, ZIO}
 
 sealed trait CheckPermissionsError
 
 object SenderUnknownError extends CheckPermissionsError
 
+object ProviderUnknownError extends CheckPermissionsError
+
 object UnderageError extends CheckPermissionsError
 
 object PremiumSmsDisallowedError extends CheckPermissionsError
 
-def youngerThan18(sender: Sender): ZIO[Any, Nothing, Boolean] =
+def tooYoung(sender: Sender, provider: Provider): UIO[Boolean] =
   Clock.localDateTime
     .map(_.toLocalDate)
-    .map(_.isBefore(sender.dob.plusYears(18)))
+    .map(_.isBefore(sender.dob.plusYears(provider.minimumAge)))
 
-def checkPermissions(request: PremiumSmsRequest): ZIO[SenderRepo, CheckPermissionsError | Throwable, PremiumSmsRequest] =
+def checkPermissions(request: PremiumSmsRequest): ZIO[
+  SenderRepo & ProviderRepo,
+  CheckPermissionsError | Throwable,
+  PremiumSmsRequest
+] =
   for
-    repo <- ZIO.service[SenderRepo]
-    maybeFound <- repo.findByMsisdn(request.sender)
-    sender <- ZIO.fromOption(maybeFound).orElseFail(SenderUnknownError)
-    isYounger <- youngerThan18(sender)
-    next <- if isYounger then
+    senderRepo <- ZIO.service[SenderRepo]
+    providerRepo <- ZIO.service[ProviderRepo]
+
+    maybeSender <- senderRepo.findByMsisdn(request.sender)
+    sender <- ZIO.fromOption(maybeSender).orElseFail(SenderUnknownError)
+
+    maybeProvider <- providerRepo.findByNumber(request.recipient)
+    provider <- ZIO.fromOption(maybeProvider).orElseFail(ProviderUnknownError)
+
+    isTooYoung <- tooYoung(sender, provider)
+    next <- if isTooYoung then
       ZIO.fail(UnderageError)
     else if sender.usePremiumSms then
       ZIO.succeed(request)

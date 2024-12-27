@@ -1,7 +1,9 @@
 package mjs.premsms
 package senders
 
-import zio.{Ref, Task, ZLayer}
+import zio.{Random, Ref, Task, ZLayer}
+
+import java.time.LocalDate
 
 class InMemorySenderRepo(map: Ref[Map[String, Sender]]) extends SenderRepo:
 
@@ -12,6 +14,22 @@ class InMemorySenderRepo(map: Ref[Map[String, Sender]]) extends SenderRepo:
 
   override def findByMsisdn(msisdn: String): Task[Option[Sender]] =
     map.get.map(_.get(msisdn))
+
+  def save(msisdn: String,
+           name: String,
+           dob: LocalDate,
+           usePremiumSms: Boolean): Task[InMemorySenderRepo] =
+    for
+      id <- Random.nextUUID
+      sender = Sender(
+        id = id,
+        msisdn = msisdn,
+        name = name,
+        dob = dob,
+        usePremiumSms = usePremiumSms
+      )
+      _ <- save(sender)
+    yield this
 
 object InMemorySenderRepo {
   def layer: ZLayer[Any, Nothing, InMemorySenderRepo] =
