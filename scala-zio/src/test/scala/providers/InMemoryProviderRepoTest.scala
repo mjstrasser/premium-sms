@@ -18,7 +18,13 @@ object InMemoryProviderRepoTest extends ZIOSpecDefault {
         for
           repo <- ZIO.service[ProviderRepo]
           found <- repo.findByNumber("190000")
-        yield assertTrue(found.get == Provider("Test provider 0", "190000", BigDecimal(0.55), 0))
+        yield assertTrue(
+          found.isDefined,
+          found.get.number == "190000",
+          found.get.name == "Test provider 0.55/0",
+          found.get.cost == BigDecimal(0.55),
+          found.get.minimumAge == 0,
+        )
       },
     )
   ).provide(

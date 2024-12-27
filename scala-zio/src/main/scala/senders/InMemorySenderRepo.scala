@@ -16,6 +16,6 @@ class InMemorySenderRepo(map: Ref[Map[String, Sender]]) extends SenderRepo:
 object InMemorySenderRepo {
   def layer: ZLayer[Any, Nothing, InMemorySenderRepo] =
     ZLayer.fromZIO(
-      Ref.make(Map.empty[String, Sender]).map(new InMemorySenderRepo(_))
+      Ref.make(Map.empty[String, Sender]).map(InMemorySenderRepo(_))
     )
 }
