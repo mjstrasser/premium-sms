@@ -13,6 +13,9 @@ class InMemoryProviderRepo(map: Ref[Map[String, Provider]]) extends ProviderRepo
   override def findByNumber(number: String): Task[Option[Provider]] =
     map.get.map(_.get(number))
 
+  override def findByName(name: String): Task[Option[Provider]] =
+    map.get.map(_.values.find(_.name == name))
+
   def save(number: String,
            name: String,
            cost: BigDecimal,

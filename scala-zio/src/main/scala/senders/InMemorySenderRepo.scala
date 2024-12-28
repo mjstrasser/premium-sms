@@ -15,6 +15,9 @@ class InMemorySenderRepo(map: Ref[Map[String, Sender]]) extends SenderRepo:
   override def findByMsisdn(msisdn: String): Task[Option[Sender]] =
     map.get.map(_.get(msisdn))
 
+  override def findByName(name: String): Task[Option[Sender]] =
+    map.get.map(_.values.find(_.name == name))
+
   def save(msisdn: String,
            name: String,
            dob: LocalDate,

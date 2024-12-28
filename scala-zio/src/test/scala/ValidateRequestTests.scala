@@ -10,17 +10,17 @@ import java.time.{LocalDate, ZoneOffset}
 
 val today: LocalDate = LocalDate.of(2024, 12, 26)
 
-def testSender(msisdn: String): RIO[SenderRepo, Sender] =
+def testSender(name: String): RIO[SenderRepo, Sender] =
   for
     repo <- ZIO.service[SenderRepo]
-    maybeSender <- repo.findByMsisdn(msisdn)
+    maybeSender <- repo.findByName(name)
     sender <- ZIO.getOrFail(maybeSender)
   yield sender
 
-def testProvider(number: String): RIO[ProviderRepo, Provider] =
+def testProvider(name: String): RIO[ProviderRepo, Provider] =
   for
     repo <- ZIO.service[ProviderRepo]
-    maybeProvider <- repo.findByNumber(number)
+    maybeProvider <- repo.findByName(name)
     provider <- ZIO.getOrFail(maybeProvider)
   yield provider
 
@@ -31,10 +31,12 @@ def setDateAtMidday(year: Int, month: Int, day: Int): UIO[Unit] =
       .atZone(ZoneOffset.UTC).toInstant)
   yield ()
 
-def testRequest(sender: Sender, number: String): RIO[SenderRepo, PremiumSmsRequest] =
+def testRequest(senderName: String, providerName: String): RIO[SenderRepo & ProviderRepo, PremiumSmsRequest] =
   for
     timestamp <- Clock.currentDateTime
-  yield PremiumSmsRequest(timestamp, sender.msisdn, number, "Test request")
+    sender <- testSender(senderName)
+    provider <- testProvider(providerName)
+  yield PremiumSmsRequest(timestamp, sender.msisdn, provider.number, "Test request")
 
 object ValidateRequestTests extends ZIOSpecDefault {
   def spec: Spec[Any, Throwable] = suite("ValidateRequest tests")(
@@ -42,37 +44,29 @@ object ValidateRequestTests extends ZIOSpecDefault {
       test("is true for an under-18 sender requesting a provider with minimum age 18") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          sender <- testSender("61400100202")
-          provider <- testProvider("190001")
+          sender <- testSender("Test sender 2010/yes")
+          provider <- testProvider("Test provider 0.55/18")
           isTooYoung <- tooYoung(sender, provider)
         yield assertTrue(isTooYoung)
       },
       test("is false for an under-18 sender requesting a provider with minimum age 0") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          sender <- testSender("61400100202")
-          provider <- testProvider("190000")
+          sender <- testSender("Test sender 2010/yes")
+          provider <- testProvider("Test provider 0.55/0")
           isTooYoung <- tooYoung(sender, provider)
         yield assertTrue(!isTooYoung)
       },
       test("is false for an over-18 sender requesting a provider with minimum age 18") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          sender <- testSender("61400100200")
-          provider <- testProvider("190001")
+          sender <- testSender("Test sender 1980/yes")
+          provider <- testProvider("Test provider 0.55/18")
           isTooYoung <- tooYoung(sender, provider)
         yield assertTrue(!isTooYoung)
       },
     ),
     suite("checkPermissions function")(
-      test("succeeds for a known, old-enough sender who uses premium SMS") {
-        for
-          _ <- setDateAtMidday(2024, 12, 27)
-          sender <- testSender("61400100200")
-          request <- testRequest(sender, "190000")
-          next <- validateRequest(request).exit
-        yield assertTrue(next == Exit.succeed(request))
-      },
       test("fails with SenderUnknownError if sender is not in the database") {
         for
           timestamp <- Clock.currentDateTime
@@ -80,19 +74,24 @@ object ValidateRequestTests extends ZIOSpecDefault {
           exit <- validateRequest(request).exit
         yield assertTrue(exit == Exit.fail(SenderUnknownError))
       },
+      test("succeeds for a known, old-enough sender who uses premium SMS") {
+        for
+          _ <- setDateAtMidday(2024, 12, 27)
+          request <- testRequest("Test sender 1980/yes", "Test provider 0.55/0")
+          exit <- validateRequest(request).exit
+        yield assertTrue(exit == Exit.succeed(request))
+      },
       test("fails with UnderageError if sender is under 18") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          sender <- testSender("61400100202")
-          request <- testRequest(sender, "190001")
+          request <- testRequest("Test sender 2010/yes", "Test provider 0.55/18")
           exit <- validateRequest(request).exit
         yield assertTrue(exit == Exit.fail(UnderageError))
       },
       test("fails with PremiumSmsDisallowedError if old-enough sender has premium SMS disabled") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          sender <- testSender("61400100201")
-          request <- testRequest(sender, "190001")
+          request <- testRequest("Test sender 1980/no", "Test provider 0.55/18")
           exit <- validateRequest(request).exit
         yield assertTrue(exit == Exit.fail(PremiumSmsDisallowedError))
       }
