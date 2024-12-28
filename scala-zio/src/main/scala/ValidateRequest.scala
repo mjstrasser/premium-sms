@@ -1,26 +1,35 @@
 package mjs.premsms
 
-import zio.*
+import providers.{Provider, ProviderRepo}
+import senders.{Sender, SenderRepo}
 
-sealed trait InvalidRequestError
+import zio.{Clock, UIO, ZIO}
 
-object EmptySenderError extends InvalidRequestError
-object EmptyRecipientError extends InvalidRequestError
-object EmptyMessageError extends InvalidRequestError
-object FutureTimestampError extends InvalidRequestError
+def tooYoung(sender: Sender, provider: Provider): UIO[Boolean] =
+  Clock.localDateTime
+    .map(_.toLocalDate)
+    .map(_.isBefore(sender.dob.plusYears(provider.minimumAge)))
 
-def validateRequest(request: PremiumSmsRequest): ZIO[Any, InvalidRequestError, PremiumSmsRequest] =
-  if request.sender.isEmpty then
-    ZIO.fail(EmptySenderError)
-  else if request.recipient.isEmpty then
-    ZIO.fail(EmptyRecipientError)
-  else if request.message.isEmpty then
-    ZIO.fail(EmptyMessageError)
-  else
-    for
-      now <- Clock.currentDateTime
-      validation <- if request.timestamp.isAfter(now) then
-        ZIO.fail(FutureTimestampError)
-      else
-        ZIO.succeed(request)
-    yield validation
+def validateRequest(request: PremiumSmsRequest): ZIO[
+  SenderRepo & ProviderRepo,
+  ValidateRequestError | Throwable,
+  PremiumSmsRequest
+] =
+  for
+    senderRepo <- ZIO.service[SenderRepo]
+    providerRepo <- ZIO.service[ProviderRepo]
+
+    maybeSender <- senderRepo.findByMsisdn(request.sender)
+    sender <- ZIO.fromOption(maybeSender).orElseFail(SenderUnknownError)
+
+    maybeProvider <- providerRepo.findByNumber(request.recipient)
+    provider <- ZIO.fromOption(maybeProvider).orElseFail(ProviderUnknownError)
+
+    isTooYoung <- tooYoung(sender, provider)
+    next <- if isTooYoung then
+      ZIO.fail(UnderageError)
+    else if sender.usePremiumSms then
+      ZIO.succeed(request)
+    else
+      ZIO.fail(PremiumSmsDisallowedError)
+  yield next
