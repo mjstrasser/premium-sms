@@ -4,21 +4,21 @@ package accounts
 import zio.test.{Spec, ZIOSpecDefault, assertTrue}
 import zio.{Exit, Random, Task}
 
-def testAccount(reservedBalance: BigDecimal): Task[Account] =
+def testAccount(balance: BigDecimal): Task[PrepaidAccount] =
   for
     id <- Random.nextUUID
     senderId <- Random.nextUUID
-  yield Account(id, senderId, AccountType.Postpaid, reservedBalance, reservedBalance)
+  yield PrepaidAccount(id, senderId, balance)
 
-object AccountTests extends ZIOSpecDefault {
+object PrepaidAccountTests extends ZIOSpecDefault {
 
-  def spec: Spec[Any, Any] = suite("Account tests")(
+  def spec: Spec[Any, Any] = suite("Prepaid account tests")(
     suite("reserveCharge function")(
       test("succeeds with sufficient reserved funds") {
         for
           account <- testAccount(10.00)
           reserved <- account.reserveCharge(0.55)
-        yield assertTrue(reserved.reservedBalance == BigDecimal(9.45))
+        yield assertTrue(reserved.balance == BigDecimal(9.45))
       },
       test("fails with insufficient reserved funds") {
         for

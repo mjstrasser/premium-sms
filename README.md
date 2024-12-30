@@ -13,8 +13,8 @@ Premium SMS request example:
 ```json
 {
   "timestamp": "2024-12-20T10:08:42.123456Z",
-  "sender": "+614111222333",
-  "recipient": "1900123456",
+  "sender": "614111222333",
+  "recipient": "191020",
   "message": "I vote for 5"
 }
 ```

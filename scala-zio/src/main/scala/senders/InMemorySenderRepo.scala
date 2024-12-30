@@ -1,6 +1,8 @@
 package mjs.premsms
 package senders
 
+import accounts.AccountType
+
 import zio.{Random, Ref, Task, ZLayer}
 
 import java.time.LocalDate
@@ -19,6 +21,7 @@ class InMemorySenderRepo(map: Ref[Map[String, Sender]]) extends SenderRepo:
     map.get.map(_.values.find(_.name == name))
 
   def save(msisdn: String,
+           accountType: AccountType,
            name: String,
            dob: LocalDate,
            usePremiumSms: Boolean): Task[InMemorySenderRepo] =
@@ -27,6 +30,7 @@ class InMemorySenderRepo(map: Ref[Map[String, Sender]]) extends SenderRepo:
       sender = Sender(
         id = id,
         msisdn = msisdn,
+        accountType = accountType,
         name = name,
         dob = dob,
         usePremiumSms = usePremiumSms

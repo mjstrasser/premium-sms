@@ -1,6 +1,8 @@
 package mjs.premsms
 package senders
 
+import accounts.AccountType.Prepaid
+
 import zio.test.{Spec, ZIOSpecDefault, assertTrue}
 import zio.{Random, ZIO}
 
@@ -17,6 +19,7 @@ object InMemorySenderRepoTest extends ZIOSpecDefault {
           sender = Sender(
             id = id,
             msisdn = msisdn,
+            accountType = Prepaid,
             name = "Samuel Clemens",
             dob = LocalDate.of(1973, 4, 1),
             usePremiumSms = true
@@ -41,6 +44,7 @@ object InMemorySenderRepoTest extends ZIOSpecDefault {
           sender = Sender(
             id = id,
             msisdn = msisdn,
+            accountType = Prepaid,
             name = "Samuel Clemens",
             dob = LocalDate.of(1973, 4, 1),
             usePremiumSms = true
