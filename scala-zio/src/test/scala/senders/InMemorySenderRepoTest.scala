@@ -1,7 +1,8 @@
 package mjs.premsms
 package senders
 
-import accounts.AccountType.Prepaid
+import accounts.AccountType.{Postpaid, Prepaid}
+import accounts.{PostpaidAccount, PrepaidAccount}
 
 import zio.test.{Spec, ZIOSpecDefault, assertTrue}
 import zio.{Random, ZIO}
@@ -16,12 +17,14 @@ object InMemorySenderRepoTest extends ZIOSpecDefault {
         val msisdn = "61412345678"
         for
           id <- Random.nextUUID
+          accountId <- Random.nextUUID
           sender = Sender(
             id = id,
             msisdn = msisdn,
-            accountType = Prepaid,
             name = "Samuel Clemens",
             dob = LocalDate.of(1973, 4, 1),
+            accountType = Prepaid,
+            account = PrepaidAccount(id, accountId, 50.0),
             usePremiumSms = true
           )
           repo <- ZIO.service[SenderRepo]
@@ -41,12 +44,14 @@ object InMemorySenderRepoTest extends ZIOSpecDefault {
         val msisdn = "61412345678"
         for
           id <- Random.nextUUID
+          accountId <- Random.nextUUID
           sender = Sender(
             id = id,
             msisdn = msisdn,
-            accountType = Prepaid,
             name = "Samuel Clemens",
             dob = LocalDate.of(1973, 4, 1),
+            accountType = Postpaid,
+            account = PostpaidAccount(id, accountId),
             usePremiumSms = true
           )
           repo <- ZIO.service[SenderRepo]

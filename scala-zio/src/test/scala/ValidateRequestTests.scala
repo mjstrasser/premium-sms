@@ -45,7 +45,7 @@ object ValidateRequestTests extends ZIOSpecDefault {
       test("is true for an under-18 sender requesting a provider with minimum age 18") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          sender <- testSender("Test sender 2010/yes")
+          sender <- testSender("Test 2010-Prepaid-5.00-yes")
           provider <- testProvider("Test provider 0.55/18")
           isTooYoung <- tooYoung(sender, provider)
         yield assertTrue(isTooYoung)
@@ -53,7 +53,7 @@ object ValidateRequestTests extends ZIOSpecDefault {
       test("is false for an under-18 sender requesting a provider with minimum age 0") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          sender <- testSender("Test sender 2010/yes")
+          sender <- testSender("Test 2010-Prepaid-5.00-yes")
           provider <- testProvider("Test provider 0.55/0")
           isTooYoung <- tooYoung(sender, provider)
         yield assertTrue(!isTooYoung)
@@ -61,7 +61,7 @@ object ValidateRequestTests extends ZIOSpecDefault {
       test("is false for an over-18 sender requesting a provider with minimum age 18") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          sender <- testSender("Test sender 1980/yes")
+          sender <- testSender("Test 1980-Postpaid--yes")
           provider <- testProvider("Test provider 0.55/18")
           isTooYoung <- tooYoung(sender, provider)
         yield assertTrue(!isTooYoung)
@@ -78,21 +78,21 @@ object ValidateRequestTests extends ZIOSpecDefault {
       test("succeeds for a known, old-enough sender who uses premium SMS") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          data <- testData("Test sender 1980/yes", "Test provider 0.55/0")
+          data <- testData("Test 1980-Postpaid--yes", "Test provider 0.55/0")
           exit <- validateRequest(data.request).exit
         yield assertTrue(exit == Exit.succeed(data))
       },
       test("fails with UnderageError if sender is under 18") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          data <- testData("Test sender 2010/yes", "Test provider 0.55/18")
+          data <- testData("Test 2010-Prepaid-5.00-yes", "Test provider 0.55/18")
           exit <- validateRequest(data.request).exit
         yield assertTrue(exit == Exit.fail(UnderageError))
       },
       test("fails with PremiumSmsDisallowedError if old-enough sender has premium SMS disabled") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          data <- testData("Test sender 1980/no", "Test provider 0.55/18")
+          data <- testData("Test 1980-Postpaid--no", "Test provider 0.55/18")
           exit <- validateRequest(data.request).exit
         yield assertTrue(exit == Exit.fail(PremiumSmsDisallowedError))
       }

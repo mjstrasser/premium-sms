@@ -1,7 +1,7 @@
 package mjs.premsms
 package senders
 
-import accounts.AccountType
+import accounts.{AccountType, PostpaidAccount, PrepaidAccount}
 
 import zio.{Random, Ref, Task, ZLayer}
 
@@ -21,20 +21,18 @@ class InMemorySenderRepo(map: Ref[Map[String, Sender]]) extends SenderRepo:
     map.get.map(_.values.find(_.name == name))
 
   def save(msisdn: String,
-           accountType: AccountType,
            name: String,
            dob: LocalDate,
+           accountType: AccountType,
+           accountBalance: BigDecimal,
            usePremiumSms: Boolean): Task[InMemorySenderRepo] =
     for
       id <- Random.nextUUID
-      sender = Sender(
-        id = id,
-        msisdn = msisdn,
-        accountType = accountType,
-        name = name,
-        dob = dob,
-        usePremiumSms = usePremiumSms
-      )
+      accountId <- Random.nextUUID
+      sender = if accountType == AccountType.Prepaid then
+        Sender(id, msisdn, name, dob, accountType, PrepaidAccount(accountId, id, accountBalance), usePremiumSms)
+      else
+        Sender(id, msisdn, name, dob, accountType, PostpaidAccount(accountId, id), usePremiumSms)
       _ <- save(sender)
     yield this
 
