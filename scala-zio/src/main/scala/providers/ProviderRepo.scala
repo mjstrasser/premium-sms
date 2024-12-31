@@ -4,10 +4,9 @@ package providers
 import zio.{Task, ZIO}
 
 trait ProviderRepo:
-  def save(provider: Provider): Task[String]
 
   def findByNumber(number: String): Task[Option[Provider]]
-  
+
   def findByName(name: String): Task[Option[Provider]]
 
 object ProviderRepo:
