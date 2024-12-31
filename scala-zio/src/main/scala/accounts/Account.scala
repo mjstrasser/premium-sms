@@ -9,6 +9,8 @@ trait Account:
 
   def reserveCharge(charge: BigDecimal): IO[AccountError, Account]
 
+  def currentBalance: BigDecimal
+
 case class PrepaidAccount(id: UUID,
                           senderId: UUID,
                           balance: BigDecimal) extends Account {
@@ -20,6 +22,8 @@ case class PrepaidAccount(id: UUID,
     else
       ZIO.fail(InsufficientBalanceError)
   }
+
+  override def currentBalance: BigDecimal = balance
 }
 
 case class PostpaidAccount(id: UUID,
@@ -27,4 +31,6 @@ case class PostpaidAccount(id: UUID,
 
   override def reserveCharge(charge: BigDecimal): IO[AccountError, PostpaidAccount] =
     ZIO.succeed(this)
+
+  override def currentBalance: BigDecimal = BigDecimal(1_000_000.00)
 }
