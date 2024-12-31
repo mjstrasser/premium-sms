@@ -31,12 +31,13 @@ def setDateAtMidday(year: Int, month: Int, day: Int): UIO[Unit] =
       .atZone(ZoneOffset.UTC).toInstant)
   yield ()
 
-def testRequest(senderName: String, providerName: String): RIO[SenderRepo & ProviderRepo, PremiumSmsRequest] =
+def testData(senderName: String, providerName: String): RIO[SenderRepo & ProviderRepo, PremiumSmsData] =
   for
     timestamp <- Clock.currentDateTime
     sender <- testSender(senderName)
     provider <- testProvider(providerName)
-  yield PremiumSmsRequest(timestamp, sender.msisdn, provider.number, "Test request")
+    request = PremiumSmsRequest(timestamp, sender.msisdn, provider.number, "Test request")
+  yield PremiumSmsData(request, sender, provider)
 
 object ValidateRequestTests extends ZIOSpecDefault {
   def spec: Spec[Any, Throwable] = suite("ValidateRequest tests")(
@@ -77,22 +78,22 @@ object ValidateRequestTests extends ZIOSpecDefault {
       test("succeeds for a known, old-enough sender who uses premium SMS") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          request <- testRequest("Test sender 1980/yes", "Test provider 0.55/0")
-          exit <- validateRequest(request).exit
-        yield assertTrue(exit == Exit.succeed(request))
+          data <- testData("Test sender 1980/yes", "Test provider 0.55/0")
+          exit <- validateRequest(data.request).exit
+        yield assertTrue(exit == Exit.succeed(data))
       },
       test("fails with UnderageError if sender is under 18") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          request <- testRequest("Test sender 2010/yes", "Test provider 0.55/18")
-          exit <- validateRequest(request).exit
+          data <- testData("Test sender 2010/yes", "Test provider 0.55/18")
+          exit <- validateRequest(data.request).exit
         yield assertTrue(exit == Exit.fail(UnderageError))
       },
       test("fails with PremiumSmsDisallowedError if old-enough sender has premium SMS disabled") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
-          request <- testRequest("Test sender 1980/no", "Test provider 0.55/18")
-          exit <- validateRequest(request).exit
+          data <- testData("Test sender 1980/no", "Test provider 0.55/18")
+          exit <- validateRequest(data.request).exit
         yield assertTrue(exit == Exit.fail(PremiumSmsDisallowedError))
       }
     )

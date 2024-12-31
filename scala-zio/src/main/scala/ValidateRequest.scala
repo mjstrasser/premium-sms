@@ -13,7 +13,7 @@ def tooYoung(sender: Sender, provider: Provider): UIO[Boolean] =
 def validateRequest(request: PremiumSmsRequest): ZIO[
   SenderRepo & ProviderRepo,
   ValidateRequestError | Throwable,
-  PremiumSmsRequest
+  PremiumSmsData
 ] =
   for
     senderRepo <- ZIO.service[SenderRepo]
@@ -29,7 +29,7 @@ def validateRequest(request: PremiumSmsRequest): ZIO[
     next <- if isTooYoung then
       ZIO.fail(UnderageError)
     else if sender.usePremiumSms then
-      ZIO.succeed(request)
+      ZIO.succeed(PremiumSmsData(request, sender, provider))
     else
       ZIO.fail(PremiumSmsDisallowedError)
   yield next
