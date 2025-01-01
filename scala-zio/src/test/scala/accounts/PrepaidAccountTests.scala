@@ -24,7 +24,7 @@ object PrepaidAccountTests extends ZIOSpecDefault {
         for
           account <- testAccount(5.00)
           exit <- account.reserveCharge(5.50).exit
-        yield assertTrue(exit == Exit.fail(InsufficientBalanceError))
+        yield assertTrue(exit == Exit.fail(InsufficientPrepaidFundsError))
       }
     )
   )

@@ -3,4 +3,4 @@ package accounts
 
 sealed trait AccountError
 
-object InsufficientBalanceError extends AccountError
+object InsufficientPrepaidFundsError extends AccountError

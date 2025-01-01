@@ -20,7 +20,7 @@ case class PrepaidAccount(id: UUID,
     if newBalance >= BigDecimal(0.00) then
       ZIO.succeed(PrepaidAccount(id, senderId, newBalance))
     else
-      ZIO.fail(InsufficientBalanceError)
+      ZIO.fail(InsufficientPrepaidFundsError)
   }
 
   override def currentBalance: BigDecimal = balance

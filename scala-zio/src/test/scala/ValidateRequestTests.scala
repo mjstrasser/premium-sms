@@ -1,43 +1,10 @@
 package mjs.premsms
 
-import providers.{Provider, ProviderRepo, TestProvidersRepo}
-import senders.{InMemorySenderRepo, Sender, SenderRepo, TestSendersRepo}
+import providers.{ProviderRepo, TestProvidersRepo}
+import senders.{InMemorySenderRepo, SenderRepo, TestSendersRepo}
 
-import zio.test.{Spec, TestClock, ZIOSpecDefault, assertTrue}
-import zio.{Clock, Exit, RIO, UIO, ZIO}
-
-import java.time.{LocalDate, ZoneOffset}
-
-val today: LocalDate = LocalDate.of(2024, 12, 26)
-
-def testSender(name: String): RIO[SenderRepo, Sender] =
-  for
-    repo <- ZIO.service[SenderRepo]
-    maybeSender <- repo.findByName(name)
-    sender <- ZIO.getOrFail(maybeSender)
-  yield sender
-
-def testProvider(name: String): RIO[ProviderRepo, Provider] =
-  for
-    repo <- ZIO.service[ProviderRepo]
-    maybeProvider <- repo.findByName(name)
-    provider <- ZIO.getOrFail(maybeProvider)
-  yield provider
-
-def setDateAtMidday(year: Int, month: Int, day: Int): UIO[Unit] =
-  for
-    _ <- TestClock.setTimeZone(ZoneOffset.UTC)
-    _ <- TestClock.setTime(LocalDate.of(year, month, day).atTime(12, 0, 0)
-      .atZone(ZoneOffset.UTC).toInstant)
-  yield ()
-
-def testData(senderName: String, providerName: String): RIO[SenderRepo & ProviderRepo, PremiumSmsData] =
-  for
-    timestamp <- Clock.currentDateTime
-    sender <- testSender(senderName)
-    provider <- testProvider(providerName)
-    request = PremiumSmsRequest(timestamp, sender.msisdn, provider.number, "Test request")
-  yield PremiumSmsData(request, sender, provider)
+import zio.test.{Spec, ZIOSpecDefault, assertTrue}
+import zio.{Clock, Exit}
 
 object ValidateRequestTests extends ZIOSpecDefault {
   def spec: Spec[Any, Throwable] = suite("ValidateRequest tests")(
