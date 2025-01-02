@@ -3,6 +3,7 @@ package mjs.premsms
 import providers.{Provider, ProviderRepo}
 import senders.{Sender, SenderRepo}
 
+import zio.http.{Request, Response, Status, TestClient}
 import zio.test.TestClock
 import zio.{Clock, RIO, UIO, ZIO}
 
@@ -60,3 +61,12 @@ def simpleResponse(request: PremiumSmsRequest, cost: BigDecimal) =
     request.sender,
     request.recipient,
     cost)
+
+def testClient(data: PremiumSmsData, status: Status): ZIO[TestClient, Nothing, Unit] =
+  TestClient.addRequestResponse(
+    Request.get(data.provider.url)
+      .addQueryParam("sender", data.sender.msisdn)
+      .addQueryParam("number", data.provider.number)
+      .addQueryParam("message", data.request.message),
+    Response.status(status),
+  )

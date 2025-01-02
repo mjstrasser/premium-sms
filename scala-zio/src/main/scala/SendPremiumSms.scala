@@ -9,7 +9,7 @@ import zio.http.Client
 
 def sendPremiumSms(request: PremiumSmsRequest): ZIO[
   SenderRepo & ProviderRepo & Client,
-  Throwable | ValidateRequestError | AccountError,
+  Throwable | ValidateRequestError | AccountError | SendToProviderError,
   PremiumSmsResponse
 ] =
   for
