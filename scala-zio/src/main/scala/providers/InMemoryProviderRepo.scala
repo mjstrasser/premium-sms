@@ -22,7 +22,8 @@ class InMemoryProviderRepo(map: Ref[Map[String, Provider]]) extends ProviderRepo
         number = number,
         name = name,
         cost = cost,
-        minimumAge = minimumAge
+        minimumAge = minimumAge,
+        url = "https://provider.example.com"
       )
       _ <- map.update(_ + (number -> provider))
     yield this

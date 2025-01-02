@@ -4,6 +4,7 @@ import accounts.InsufficientPrepaidFundsError
 import providers.TestProvidersRepo
 import senders.TestSendersRepo
 
+import zio.http.{Client, TestClient}
 import zio.Exit
 import zio.test.{Spec, ZIOSpecDefault, assertTrue}
 
@@ -67,4 +68,5 @@ object SendPremiumSmsTests extends ZIOSpecDefault:
     ).provide(
       TestSendersRepo.layer,
       TestProvidersRepo.layer,
+      TestClient.layer,
     )

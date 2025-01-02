@@ -7,4 +7,5 @@ case class Provider(id: UUID,
                     number: String,
                     name: String,
                     cost: BigDecimal,
-                    minimumAge: Int)
+                    minimumAge: Int,
+                    url: String)
