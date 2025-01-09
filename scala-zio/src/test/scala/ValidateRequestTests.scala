@@ -25,6 +25,14 @@ object ValidateRequestTests extends ZIOSpecDefault {
           isTooYoung <- tooYoung(sender, provider)
         yield assertTrue(!isTooYoung)
       },
+      test("is false for a sender on their 18th birthday requesting a provider with minimum age 18") {
+        for
+          _ <- setDateAtMidday(2028, 4, 1)
+          sender <- testSender("Test 2010-Prepaid-5.00-yes")
+          provider <- testProvider("Test provider 0.55/18")
+          isTooYoung <- tooYoung(sender, provider)
+        yield assertTrue(!isTooYoung)
+      },
       test("is false for an over-18 sender requesting a provider with minimum age 18") {
         for
           _ <- setDateAtMidday(2024, 12, 27)
